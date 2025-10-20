@@ -16,6 +16,7 @@ const UserList = () => {
   const [error, setError] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   // Users ko fetch karne ka function - backend se saare users ki list laate hain
   useEffect(() => {
@@ -36,11 +37,46 @@ const UserList = () => {
     fetchUsers();
   }, []);
 
+  // Sorting function
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Sort users based on current sort config
+  const sortedUsers = React.useMemo(() => {
+    if (!sortConfig.key) return users;
+    
+    const sorted = [...users].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+      
+      // Special handling for dates
+      if (sortConfig.key === 'createdDate') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+      
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+    
+    return sorted;
+  }, [users, sortConfig]);
+
   // Pagination calculations
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const currentUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -78,14 +114,38 @@ const UserList = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Username
+                  <th 
+                    onClick={() => handleSort('userName')}
+                    className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Username
+                      {sortConfig.key === 'userName' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Email
+                  <th 
+                    onClick={() => handleSort('email')}
+                    className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Email
+                      {sortConfig.key === 'email' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Created At
+                  <th 
+                    onClick={() => handleSort('createdDate')}
+                    className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Created At
+                      {sortConfig.key === 'createdDate' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
                     Status

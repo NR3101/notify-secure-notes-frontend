@@ -17,6 +17,7 @@ const AdminAuditLogs = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   // Audit logs fetch karne ka function - backend se saari logs laate hain
   const fetchAuditLogs = async () => {
@@ -37,11 +38,46 @@ const AdminAuditLogs = () => {
     fetchAuditLogs();
   }, []);
 
+  // Sorting function
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Sort audit logs based on current sort config
+  const sortedLogs = React.useMemo(() => {
+    if (!sortConfig.key) return auditLogs;
+    
+    const sorted = [...auditLogs].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+      
+      // Special handling for timestamp
+      if (sortConfig.key === 'timestamp') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+      
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+    
+    return sorted;
+  }, [auditLogs, sortConfig]);
+
   // Pagination calculations
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLogs = auditLogs.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(auditLogs.length / itemsPerPage);
+  const currentLogs = sortedLogs.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedLogs.length / itemsPerPage);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -79,17 +115,49 @@ const AdminAuditLogs = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Action
+                  <th 
+                    onClick={() => handleSort('action')}
+                    className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Action
+                      {sortConfig.key === 'action' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Username
+                  <th 
+                    onClick={() => handleSort('username')}
+                    className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Username
+                      {sortConfig.key === 'username' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Timestamp
+                  <th 
+                    onClick={() => handleSort('timestamp')}
+                    className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Timestamp
+                      {sortConfig.key === 'timestamp' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
-                    Note ID
+                  <th 
+                    onClick={() => handleSort('noteId')}
+                    className="px-6 py-4 text-center text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      Note ID
+                      {sortConfig.key === 'noteId' && (
+                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
                     Note Content
