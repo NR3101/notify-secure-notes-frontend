@@ -17,14 +17,10 @@ const OAuth2RedirectHandler = () => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
 
-    console.log("OAuth2RedirectHandler: Params:", params.toString());
-    console.log("OAuth2RedirectHandler: Token:", token);
-
     if (token) {
       try {
         // JWT token ko decode karke user details nikalenge
         const decodedToken = jwtDecode(token);
-        console.log("Decoded Token:", decodedToken);
 
         // LocalStorage me token store karo
         localStorage.setItem("JWT_TOKEN", token);
@@ -34,7 +30,6 @@ const OAuth2RedirectHandler = () => {
           username: decodedToken.sub,
           roles: decodedToken.roles.split(","),
         };
-        console.log("User Object:", user);
         localStorage.setItem("USER", JSON.stringify(user));
 
         // Zustand store update karo - global state me user info available ho jayegi
@@ -46,7 +41,6 @@ const OAuth2RedirectHandler = () => {
 
         // Thoda delay deke navigation karo - localStorage operations complete hone ke liye
         setTimeout(() => {
-          console.log("Navigating to /notes");
           navigate("/notes", { replace: true });
         }, 100); // 100ms delay
       } catch (error) {
@@ -55,7 +49,6 @@ const OAuth2RedirectHandler = () => {
       }
     } else {
       // Token nahi mila toh login page par bhej do
-      console.log("Token not found in URL, redirecting to login");
       navigate("/login", { replace: true });
     }
   }, [location, navigate, setToken, setIsAdmin, fetchUser]);

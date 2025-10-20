@@ -1,7 +1,5 @@
 import axios from "axios";
 
-console.log("API URL:", import.meta.env.VITE_API_URL);
-
 // Axios instance banaya hai with base configuration
 // Yaha se saare API calls jaayenge
 const api = axios.create({
@@ -42,7 +40,6 @@ api.interceptors.request.use(
     if (csrfToken) {
       config.headers["X-XSRF-TOKEN"] = csrfToken;
     }
-    console.log("X-XSRF-TOKEN " + csrfToken);
     return config;
   },
   (error) => {
